@@ -8,6 +8,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"io"
@@ -60,7 +61,8 @@ func ExampleNewGCM_decrypt(key16Bytes string, cipherString string, nonceString s
 	// nonce, _ := hex.DecodeString("64a9433eae7ccceee2fc0eda")
 
 	key, _ := hex.DecodeString(key16Bytes)
-	ciphertext, _ := hex.DecodeString(cipherString)
+	// ciphertext, _ := hex.DecodeString(cipherString) // -- hex
+	ciphertext, _ := base64.StdEncoding.DecodeString(cipherString) // -- base64
 	nonce, _ := hex.DecodeString(nonceString)
 
 	block, err := aes.NewCipher(key)
