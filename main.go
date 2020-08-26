@@ -67,7 +67,7 @@ func demoFull() {
 	fmt.Println(encryptedKey)
 
 	fmt.Println()
-	fmt.Println("-- 4. (SENDER) send encrypted KEY and Message thought Network to (RECIEVER)")
+	fmt.Println("-- 4. (SENDER) send encrypted KEY and Message and nonce thought Network to (RECIEVER)")
 	fmt.Println("..... >>>>")
 	fmt.Println("..... >>>>")
 	fmt.Println()
@@ -196,6 +196,45 @@ func demoAESEncrypt(keyByte []byte, plainText string) (cipher string, nonce stri
 func demoAESDecrypt(keyByte []byte, cipherString string, nonceString string) {
 	key := hex.EncodeToString(keyByte)
 	decrypText, err := crypto.ExampleNewGCM_decrypt(key, cipherString, nonceString)
+
+	if err != nil {
+		panic(err.Error())
+	}
+
+	decrypString := hex.EncodeToString(decrypText)
+	dd, err := hex.DecodeString(decrypString)
+
+	fmt.Println("Decode Message")
+	if err != nil {
+		panic(err.Error())
+	} else {
+		fmt.Println(string(dd))
+	}
+}
+
+func demoAESCFBEncrypt(keyByte []byte, plainText string) (cipher string) {
+	key := hex.EncodeToString(keyByte)
+	fmt.Println("KEY Encrypt")
+	fmt.Println(key)
+	// plainText := "{username:'tsd',createdAt:'2020-08-30',expireAt:'2021-08-30'}"
+	cipherByte, err := crypto.ExampleNewCFBEncrypter(key, plainText)
+
+	if err != nil {
+		panic(err.Error())
+	}
+
+	cipherBase64 := base64.StdEncoding.EncodeToString(cipherByte)
+	// cipherString := hex.EncodeToString(cipherByte)
+	fmt.Println("Ciphertext")
+	//fmt.Println(cipherString)
+	fmt.Println(cipherBase64)
+
+	return cipherBase64
+}
+
+func demoAESCFBDecrypt(keyByte []byte, cipherString string) {
+	key := hex.EncodeToString(keyByte)
+	decrypText, err := crypto.ExampleNewCFBDecrypter(key, cipherString)
 
 	if err != nil {
 		panic(err.Error())

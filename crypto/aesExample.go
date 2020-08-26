@@ -10,7 +10,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/hex"
-	"fmt"
+	"errors"
 	"io"
 )
 
@@ -86,13 +86,17 @@ func ExampleNewGCM_decrypt(key16Bytes string, cipherString string, nonceString s
 	return plaintext, nil
 }
 
-func ExampleNewCBCDecrypter() {
+func ExampleNewCBCDecrypter(key16Bytes string, cipherString string) (plainText []byte, err error) {
 	// Load your secret key from a safe place and reuse it across multiple
 	// NewCipher calls. (Obviously don't use this example key for anything
 	// real.) If you want to convert a passphrase to a key, use a suitable
 	// package like bcrypt or scrypt.
-	key, _ := hex.DecodeString("6368616e676520746869732070617373")
-	ciphertext, _ := hex.DecodeString("73c86d43a9d700a253a96c85b0f6b03ac9792e0e757f869cca306bd3cba1c62b")
+	// key, _ := hex.DecodeString("6368616e676520746869732070617373")
+	// ciphertext, _ := hex.DecodeString("73c86d43a9d700a253a96c85b0f6b03ac9792e0e757f869cca306bd3cba1c62b")
+
+	key, _ := hex.DecodeString(key16Bytes)
+	// ciphertext, _ := hex.DecodeString(cipherString) // -- hex
+	ciphertext, _ := base64.StdEncoding.DecodeString(cipherString) // -- base64
 
 	block, err := aes.NewCipher(key)
 	if err != nil {
@@ -102,14 +106,16 @@ func ExampleNewCBCDecrypter() {
 	// The IV needs to be unique, but not secure. Therefore it's common to
 	// include it at the beginning of the ciphertext.
 	if len(ciphertext) < aes.BlockSize {
-		panic("ciphertext too short")
+		// panic("ciphertext too short")
+		return nil, errors.New("ciphertext too short")
 	}
 	iv := ciphertext[:aes.BlockSize]
 	ciphertext = ciphertext[aes.BlockSize:]
 
 	// CBC mode always works in whole blocks.
 	if len(ciphertext)%aes.BlockSize != 0 {
-		panic("ciphertext is not a multiple of the block size")
+		// panic("ciphertext is not a multiple of the block size")
+		return nil, errors.New("ciphertext is not a multiple of the block size")
 	}
 
 	mode := cipher.NewCBCDecrypter(block, iv)
@@ -125,29 +131,36 @@ func ExampleNewCBCDecrypter() {
 	// using crypto/hmac) before being decrypted in order to avoid creating
 	// a padding oracle.
 
-	fmt.Printf("%s\n", ciphertext)
+	// fmt.Printf("%s\n", ciphertext)
 	// Output: exampleplaintext
+
+	return ciphertext, nil
 }
 
-func ExampleNewCBCEncrypter() {
+func ExampleNewCBCEncrypter(key16Bytes string, plaintextString string) (cipherText []byte, err error) {
 	// Load your secret key from a safe place and reuse it across multiple
 	// NewCipher calls. (Obviously don't use this example key for anything
 	// real.) If you want to convert a passphrase to a key, use a suitable
 	// package like bcrypt or scrypt.
-	key, _ := hex.DecodeString("6368616e676520746869732070617373")
-	plaintext := []byte("exampleplaintext")
+	//key, _ := hex.DecodeString("6368616e676520746869732070617373")
+	//plaintext := []byte("exampleplaintext")
+
+	key, _ := hex.DecodeString(key16Bytes)
+	plaintext := []byte(plaintextString)
 
 	// CBC mode works on blocks so plaintexts may need to be padded to the
 	// next whole block. For an example of such padding, see
 	// https://tools.ietf.org/html/rfc5246#section-6.2.3.2. Here we'll
 	// assume that the plaintext is already of the correct length.
 	if len(plaintext)%aes.BlockSize != 0 {
-		panic("plaintext is not a multiple of the block size")
+		// panic("plaintext is not a multiple of the block size")
+		return nil, errors.New("plaintext is not a multiple of the block size")
 	}
 
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		panic(err)
+		// panic(err)
+		return nil, err
 	}
 
 	// The IV needs to be unique, but not secure. Therefore it's common to
@@ -155,7 +168,8 @@ func ExampleNewCBCEncrypter() {
 	ciphertext := make([]byte, aes.BlockSize+len(plaintext))
 	iv := ciphertext[:aes.BlockSize]
 	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
-		panic(err)
+		// panic(err)
+		return nil, err
 	}
 
 	mode := cipher.NewCBCEncrypter(block, iv)
@@ -165,26 +179,33 @@ func ExampleNewCBCEncrypter() {
 	// (i.e. by using crypto/hmac) as well as being encrypted in order to
 	// be secure.
 
-	fmt.Printf("%x\n", ciphertext)
+	// fmt.Printf("%x\n", ciphertext)
+	return ciphertext, nil
 }
 
-func ExampleNewCFBDecrypter() {
+func ExampleNewCFBDecrypter(key16Bytes string, cipherString string) (plainText []byte, err error) {
 	// Load your secret key from a safe place and reuse it across multiple
 	// NewCipher calls. (Obviously don't use this example key for anything
 	// real.) If you want to convert a passphrase to a key, use a suitable
 	// package like bcrypt or scrypt.
-	key, _ := hex.DecodeString("6368616e676520746869732070617373")
-	ciphertext, _ := hex.DecodeString("7dd015f06bec7f1b8f6559dad89f4131da62261786845100056b353194ad")
+	// key, _ := hex.DecodeString("6368616e676520746869732070617373")
+	// ciphertext, _ := hex.DecodeString("7dd015f06bec7f1b8f6559dad89f4131da62261786845100056b353194ad")
+
+	key, _ := hex.DecodeString(key16Bytes)
+	// ciphertext, _ := hex.DecodeString(cipherString) // -- hex
+	ciphertext, _ := base64.StdEncoding.DecodeString(cipherString) // -- base64
 
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		panic(err)
+		// panic(err)
+		return nil, err
 	}
 
 	// The IV needs to be unique, but not secure. Therefore it's common to
 	// include it at the beginning of the ciphertext.
 	if len(ciphertext) < aes.BlockSize {
-		panic("ciphertext too short")
+		// panic("ciphertext too short")
+		return nil, errors.New("ciphertext too short")
 	}
 	iv := ciphertext[:aes.BlockSize]
 	ciphertext = ciphertext[aes.BlockSize:]
@@ -193,21 +214,27 @@ func ExampleNewCFBDecrypter() {
 
 	// XORKeyStream can work in-place if the two arguments are the same.
 	stream.XORKeyStream(ciphertext, ciphertext)
-	fmt.Printf("%s", ciphertext)
+	// fmt.Printf("%s", ciphertext)
 	// Output: some plaintext
+
+	return ciphertext, nil
 }
 
-func ExampleNewCFBEncrypter() {
+func ExampleNewCFBEncrypter(key16Bytes string, plaintextString string) (cipherText []byte, err error) {
 	// Load your secret key from a safe place and reuse it across multiple
 	// NewCipher calls. (Obviously don't use this example key for anything
 	// real.) If you want to convert a passphrase to a key, use a suitable
 	// package like bcrypt or scrypt.
-	key, _ := hex.DecodeString("6368616e676520746869732070617373")
-	plaintext := []byte("some plaintext")
+	// key, _ := hex.DecodeString("6368616e676520746869732070617373")
+	// plaintext := []byte("some plaintext")
+
+	key, _ := hex.DecodeString(key16Bytes)
+	plaintext := []byte(plaintextString)
 
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		panic(err)
+		// panic(err)
+		return nil, err
 	}
 
 	// The IV needs to be unique, but not secure. Therefore it's common to
@@ -215,7 +242,8 @@ func ExampleNewCFBEncrypter() {
 	ciphertext := make([]byte, aes.BlockSize+len(plaintext))
 	iv := ciphertext[:aes.BlockSize]
 	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
-		panic(err)
+		// panic(err)
+		return nil, err
 	}
 
 	stream := cipher.NewCFBEncrypter(block, iv)
@@ -224,5 +252,6 @@ func ExampleNewCFBEncrypter() {
 	// It's important to remember that ciphertexts must be authenticated
 	// (i.e. by using crypto/hmac) as well as being encrypted in order to
 	// be secure.
-	fmt.Printf("%x\n", ciphertext)
+	// fmt.Printf("%x\n", ciphertext)
+	return cipherText, nil
 }
