@@ -13,7 +13,7 @@ import (
 	"io"
 )
 
-func ExampleNewGCM_encrypt(key16Bytes string, plaintextString string) (cipherText []byte, nouce []byte) {
+func ExampleNewGCM_encrypt(key16Bytes string, plaintextString string) (cipherText []byte, nouce []byte, err error) {
 	// Load your secret key from a safe place and reuse it across multiple
 	// Seal/Open calls. (Obviously don't use this example key for anything
 	// real.) If you want to convert a passphrase to a key, use a suitable
@@ -27,29 +27,29 @@ func ExampleNewGCM_encrypt(key16Bytes string, plaintextString string) (cipherTex
 
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		panic(err.Error())
+		return nil, nil, err
 	}
 
 	// Never use more than 2^32 random nonces with a given key because of the risk of a repeat.
 	nonce := make([]byte, 12)
 	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
-		panic(err.Error())
+		return nil, nil, err
 	}
 
 	// fmt.Printf("%x\n", nonce)
 
 	aesgcm, err := cipher.NewGCM(block)
 	if err != nil {
-		panic(err.Error())
+		return nil, nil, err
 	}
 
 	ciphertext := aesgcm.Seal(nil, nonce, plaintext, nil)
 	// fmt.Printf("%x\n", ciphertext)
 
-	return ciphertext, nonce
+	return ciphertext, nonce, nil
 }
 
-func ExampleNewGCM_decrypt(key16Bytes string, cipherString string, nonceString string) (plainText []byte) {
+func ExampleNewGCM_decrypt(key16Bytes string, cipherString string, nonceString string) (plainText []byte, err error) {
 	// Load your secret key from a safe place and reuse it across multiple
 	// Seal/Open calls. (Obviously don't use this example key for anything
 	// real.) If you want to convert a passphrase to a key, use a suitable
@@ -58,29 +58,30 @@ func ExampleNewGCM_decrypt(key16Bytes string, cipherString string, nonceString s
 	// key, _ := hex.DecodeString("6368616e676520746869732070617373776f726420746f206120736563726574")
 	// ciphertext, _ := hex.DecodeString("c3aaa29f002ca75870806e44086700f62ce4d43e902b3888e23ceff797a7a471")
 	// nonce, _ := hex.DecodeString("64a9433eae7ccceee2fc0eda")
+
 	key, _ := hex.DecodeString(key16Bytes)
 	ciphertext, _ := hex.DecodeString(cipherString)
 	nonce, _ := hex.DecodeString(nonceString)
 
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		panic(err.Error())
+		return nil, err
 	}
 
 	aesgcm, err := cipher.NewGCM(block)
 	if err != nil {
-		panic(err.Error())
+		return nil, err
 	}
 
 	plaintext, err := aesgcm.Open(nil, nonce, ciphertext, nil)
 	if err != nil {
-		panic(err.Error())
+		return nil, err
 	}
 
 	// fmt.Printf("%s\n", plaintext)
 	// Output: exampleplaintext
 
-	return plaintext
+	return plaintext, nil
 }
 
 func ExampleNewCBCDecrypter() {
