@@ -19,7 +19,10 @@ func main() {
 	// demoAES()
 
 	// ----------------------Text Full use RSA E(AES-KEY) -------------------------
-	demoFull()
+	// demoFull()
+
+	// .. CBC
+	demoAESCBC()
 }
 
 func demoFull() {
@@ -212,12 +215,21 @@ func demoAESDecrypt(keyByte []byte, cipherString string, nonceString string) {
 	}
 }
 
-func demoAESCFBEncrypt(keyByte []byte, plainText string) (cipher string) {
+func demoAESCBC() {
+	keyByte := demoAESMakeKey("1234567812345678")
+	plainText := `{"username":"tsd","password":"1234@TDS20","expire":"2021-08-31"}`
+	cipher := demoAESCBCEncrypt(keyByte, plainText)
+
+	fmt.Println(cipher)
+
+	demoAESCBCDecrypt(keyByte, cipher)
+}
+func demoAESCBCEncrypt(keyByte []byte, plainText string) (cipher string) {
 	key := hex.EncodeToString(keyByte)
 	fmt.Println("KEY Encrypt")
 	fmt.Println(key)
 	// plainText := "{username:'tsd',createdAt:'2020-08-30',expireAt:'2021-08-30'}"
-	cipherByte, err := crypto.ExampleNewCFBEncrypter(key, plainText)
+	cipherByte, err := crypto.ExampleNewCBCEncrypter(key, plainText)
 
 	if err != nil {
 		panic(err.Error())
@@ -232,9 +244,9 @@ func demoAESCFBEncrypt(keyByte []byte, plainText string) (cipher string) {
 	return cipherBase64
 }
 
-func demoAESCFBDecrypt(keyByte []byte, cipherString string) {
+func demoAESCBCDecrypt(keyByte []byte, cipherString string) {
 	key := hex.EncodeToString(keyByte)
-	decrypText, err := crypto.ExampleNewCFBDecrypter(key, cipherString)
+	decrypText, err := crypto.ExampleNewCBCDecrypter(key, cipherString)
 
 	if err != nil {
 		panic(err.Error())
