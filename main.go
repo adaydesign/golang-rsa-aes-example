@@ -217,7 +217,7 @@ func demoAESDecrypt(keyByte []byte, cipherString string, nonceString string) {
 
 func demoAESCBC() {
 	keyByte := demoAESMakeKey("1234567812345678")
-	plainText := `{"username":"tsd","password":"1234@TDS20","expire":"2021-08-31"}`
+	plainText := `{"username":"tsd","expire":"2021-08-31","f":"x"}`
 	cipher := demoAESCBCEncrypt(keyByte, plainText)
 
 	fmt.Println(cipher)
